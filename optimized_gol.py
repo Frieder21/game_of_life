@@ -132,35 +132,37 @@ class Game:
         self.optimized_list = copy.deepcopy(self.optimized_list_new)
         self.optimized_list_new = []
 
-    def print_map_terminal(self, display_width=None, display_height=None, x_self=None, y_self=None, show_gen=True,
-                           max_gen=None, show_optimize_status=True):
-        if max_gen is None:
-            if show_optimize_status:
-                last = " optimize status:" + str(self.optimize_status) + "\n"
+    def generate_random_map(self):
+        for x in range(self.game_width):
+            for y in range(self.game_height):
+                self.set_cell(x, y, alive=bool(random.getrandbits(1)))
+
+class print_Game_of_life_to_terminal:
+    def update_last(self):
+        self.optimize_status = self.game_of_life.optimize_status
+        self.gen_gen_count = self.game_of_life.gen_gen_count
+        if self.max_gen is None:
+            if self.show_optimize_status:
+                self.last = " optimize status:" + str(self.optimize_status) + "\n"
             else:
-                last = "\n"
+                self.last = "\n"
         else:
-            if show_optimize_status:
-                last = "/" + str(max_gen) + " optimize status:" + str(self.optimize_status) + "\n"
+            if self.show_optimize_status:
+                self.last = "/" + str(self.max_gen) + " optimize status:" + str(self.optimize_status) + "\n"
             else:
-                last = "/" + str(max_gen) + "\n"
-        if display_width is None:
-            display_width = self.game_width
-        if display_height is None:
-            display_height = self.game_height
-        if y_self is None:
-            y_self = 1
-        if x_self is None:
-            x_self = 1
+                self.last = "/" + str(self.max_gen) + "\n"
+
+    def print_map_terminal(self):
+
         if (not (self.text == "")) or self.gen_gen_count == 0:
             clear_to_start(self.text)
-            if show_gen:
-                self.text = "generation: " + str(self.gen_gen_count) + last
+            if self.show_gen:
+                self.text = "generation: " + str(self.gen_gen_count) + self.last
             else:
                 self.text = ""
-        for y in range(display_height):
-            for x in range(display_width):
-                if self.is_cell_alive(x + x_self, y + y_self):
+        for y in range(self.display_height):
+            for x in range(self.display_width):
+                if self.is_cell_alive(x + self.x_self, y + self.y_self):
                     self.text += "x "
                 else:
                     self.text += ". "
@@ -168,7 +170,41 @@ class Game:
         sys.stdout.write(self.text)
         sys.stdout.flush()
 
-    def generate_random_map(self):
-        for x in range(self.game_width):
-            for y in range(self.game_height):
-                self.set_cell(x, y, alive=bool(random.getrandbits(1)))
+    def auto_gen(self):
+        self.max_gen = self.gen_gen_count + self.max_gen
+        self.update_last()
+        self.print_map_terminal()
+        for i in range(self.max_gen - self.gen_gen_count):
+            self.game_of_life.next_generation()
+            self.update_last()
+            self.print_map_terminal()
+
+
+    def __init__(self, game_of_life, display_width=None, display_height=None, x_self=None, y_self=None, show_gen=True, max_gen=None, show_optimize_status=True, auto_gen=False):
+        self.game_of_life = game_of_life
+        self.optimize_status = self.game_of_life.optimize_status
+        self.gen_gen_count = self.game_of_life.gen_gen_count
+        self.last = ""
+        self.text = game_of_life.text
+        self.max_gen = max_gen
+        self.show_optimize_status = show_optimize_status
+        if display_width is None:
+            self.display_width = game_of_life.game_width
+        else:
+            self.display_width = display_width
+        if display_height is None:
+            self.display_height = game_of_life.game_height
+        else:
+            self.display_height = display_height
+        if y_self is None:
+            self.y_self = 1
+        else:
+            self.y_self = y_self
+        if x_self is None:
+            self.x_self = 1
+        else:
+            self.x_self = x_self
+        self.show_gen = show_gen
+        self.is_cell_alive = game_of_life.is_cell_alive
+        if auto_gen:
+            self.auto_gen()
