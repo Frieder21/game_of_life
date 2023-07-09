@@ -3,6 +3,8 @@ import random
 import copy
 import time
 
+import Ansi_coloring
+
 
 def clear_to_start(text):
     lines = text.split('\n')  # separate lines
@@ -14,6 +16,7 @@ def clear_to_start(text):
         if i < n_lines - 1:  # not first line of text
             sys.stdout.write('\x1b[1A')  # move up one line
     sys.stdout.write('\r')  # move to beginning of line again
+
 
 class Game:
     def update_map_size(self, game_width=None, game_height=None):
@@ -77,7 +80,7 @@ class Game:
     def optimize_good(self):
         if len(self.optimized_list_new) > 0:
             if not self.optimized_list_new[-1] == "40%":
-                if len(self.optimized_list_new*self.count_size) < (self.game_width*self.game_height):
+                if len(self.optimized_list_new * self.count_size) < (self.game_width * self.game_height):
                     return True
                 else:
                     self.optimized_list_new[-1] = "40%"
@@ -91,7 +94,7 @@ class Game:
         for x_self in self.count_map:
             for y_self in x_self:
                 if not [x + y_self[0], y + y_self[1]] in self.optimized_list_new:
-                    if x+1 < self.game_width and y+1 < self.game_height:
+                    if x + 1 < self.game_width and y + 1 < self.game_height:
                         self.optimized_list_new.append([x + y_self[0], y + y_self[1]])
 
     def next_generation(self):
@@ -137,51 +140,79 @@ class Game:
             for y in range(self.game_height):
                 self.set_cell(x, y, alive=bool(random.getrandbits(1)))
 
+
 class print_Game_of_life_to_terminal:
-    def update_last(self):
+    def update_text(self):
         self.optimize_status = self.game_of_life.optimize_status
         self.gen_gen_count = self.game_of_life.gen_gen_count
-        if self.max_gen is None:
-            if self.show_optimize_status:
-                self.last = " optimize status:" + str(self.optimize_status) + "\n"
-            else:
-                self.last = "\n"
-        else:
-            if self.show_optimize_status:
-                self.last = "/" + str(self.max_gen) + " optimize status:" + str(self.optimize_status) + "\n"
-            else:
-                self.last = "/" + str(self.max_gen) + "\n"
-
-    def print_map_terminal(self):
-
         if (not (self.text == "")) or self.gen_gen_count == 0:
             clear_to_start(self.text)
             if self.show_gen:
-                self.text = "generation: " + str(self.gen_gen_count) + self.last
+                if self.max_gen is None:
+                    if self.show_optimize_status:
+                        if self.coloring:
+                            self.text = "generation: " + Ansi_coloring.ansi_coloring_hex_colour(str(self.gen_gen_count), self.gen_color) + " optimize status: " + str(
+                                Ansi_coloring.ansi_coloring_hex_colour(self.optimize_status, self.optimize_color)) + "\n"
+                        else:
+                            self.text = "generation: " + str(self.gen_gen_count) + " optimize status: " + str(self.optimize_status) + "\n"
+                    else:
+                        if self.coloring:
+                            self.text = "generation: " + Ansi_coloring.ansi_coloring_hex_colour(str(self.gen_gen_count), self.gen_color) + "\n"
+                        else:
+                            self.text = "generation: " + str(self.gen_gen_count) + "\n"
+                else:
+                    if self.show_optimize_status:
+                        if self.coloring:
+                            self.text = "generation: " + Ansi_coloring.ansi_coloring_hex_colour(str(self.gen_gen_count) +  "/" + str(self.max_gen), self.gen_color) + " optimize status: " + Ansi_coloring.ansi_coloring_hex_colour(str(self.optimize_status), self.optimize_color) + "\n"
+                        else:
+                            self.text = "generation: " + str(self.gen_gen_count) +  "/" + str(self.max_gen) + " optimize status: " + str(self.optimize_status) + "\n"
+
+                    else:
+                        if self.coloring:
+                            self.text = "generation: " + Ansi_coloring.ansi_coloring_hex_colour(str(self.gen_gen_count) +  "/" + str(self.max_gen), self.gen_color) + "\n"
+                        else:
+                            self.text = "generation: " + str(self.gen_gen_count) + "/" + str(self.max_gen) + "\n"
             else:
                 self.text = ""
-        for y in range(self.display_height):
-            for x in range(self.display_width):
-                if self.is_cell_alive(x + self.x_self, y + self.y_self):
-                    self.text += "x "
-                else:
-                    self.text += ". "
-            self.text += "\n"
+
+
+
+    def print_map_terminal(self):
+        self.update_text()
+        if self.coloring:
+            for y in range(self.display_height):
+                for x in range(self.display_width):
+                    if self.is_cell_alive(x + self.x_self, y + self.y_self):
+                        self.text += Ansi_coloring.ansi_coloring_hex_colour("x ", self.alive_color)
+                    else:
+                        self.text += Ansi_coloring.ansi_coloring_hex_colour(". ", self.dead_color)
+                self.text += "\n"
+        else:
+            for y in range(self.display_height):
+                for x in range(self.display_width):
+                    if self.is_cell_alive(x + self.x_self, y + self.y_self):
+                        self.text += "x "
+                    else:
+                        self.text += ". "
+                self.text += "\n"
         sys.stdout.write(self.text)
         sys.stdout.flush()
 
     def auto_gen(self):
         self.max_gen = self.gen_gen_count + self.max_gen
-        self.update_last()
         self.print_map_terminal()
         for i in range(self.max_gen - self.gen_gen_count):
             self.game_of_life.next_generation()
-            self.update_last()
             self.print_map_terminal()
 
-
-    def __init__(self, game_of_life, display_width=None, display_height=None, x_self=None, y_self=None, show_gen=True, max_gen=None, show_optimize_status=True, auto_gen=False):
+    def __init__(self, game_of_life, display_width=None, display_height=None, x_self=None, y_self=None, show_gen=True,
+                 max_gen=None, show_optimize_status=True, auto_gen=False, coloring=False, optimize_color="#4A83B2", gen_color="#B1C9A4", alive_color="#F45565", dead_color="#FFFFFF"):
+        self.gen_color = gen_color
+        self.optimize_color = optimize_color
+        self.alive_color = alive_color
+        self.dead_color = dead_color
         self.game_of_life = game_of_life
+        self.coloring = coloring
         self.optimize_status = self.game_of_life.optimize_status
         self.gen_gen_count = self.game_of_life.gen_gen_count
         self.last = ""

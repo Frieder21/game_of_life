@@ -12,7 +12,7 @@ def main():
     optimized_gol.print_Game_of_life_to_terminal(game_of_life, display_width=48, display_height=16, max_gen=100,
                                                  x_self=int(game_size / 2),
                                                  y_self=int(game_size / 2),
-                                                 auto_gen=True)
+                                                 auto_gen=True, coloring=True, show_gen=True)
     # will set up the terminal output and will generate 100 generations automatically
 
 if __name__ == "__main__":
