@@ -72,6 +72,9 @@ class Game:
     def set_cell(self, x, y, alive):
         self.map[x - 1][y - 1] = int(alive)
 
+    def set_alive(self, x, y): # without checking if cell is alive or not and without checking if cell is in map or not andwithout offset
+        self.map[x][y] = 1
+
     def check_rules(self, x, y):
         count = self.count_cells(x, y)
         alive = self.is_cell_alive(x, y)
@@ -215,7 +218,7 @@ class print_Game_of_life_to_terminal:
 
     def __init__(self, game_of_life, display_width=None, display_height=None, x_self=None, y_self=None, show_gen=True,
                  max_gen=None, show_optimize_status=True, auto_gen=False, coloring=False, optimize_color="#4A83B2",
-                 gen_color="#B1C9A4", alive_color="#F45565", dead_color="#FFFFFF"):
+                 gen_color="#B1C9A4", alive_color="#F45565", dead_color="#FFFFFF", print_map_terminal=True):
         self.gen_color = gen_color
         self.optimize_color = optimize_color
         self.alive_color = alive_color
@@ -248,5 +251,7 @@ class print_Game_of_life_to_terminal:
         self.is_cell_alive = game_of_life.is_cell_alive
         self.clear_text_long = str("  " * self.display_width + "\n") * (self.display_height + 1)
         self.clear_text = str("  " * self.display_width + "\n") * (self.display_height)
+        if print_map_terminal:
+            self.print_map_terminal()
         if auto_gen:
             self.auto_gen()
